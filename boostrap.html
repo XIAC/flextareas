@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boostrap</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="indexdb.js"> </script>
 </head>
 <body>
     <h1 class="text-end">Tecnologias en internet</h1>
@@ -109,17 +110,22 @@
     
     <div class="row p-3">
         <div class="col-9">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" placeholder="Ingrese su nombre" aria-label="Nombre" aria-describedby="button-addon2">
-                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Guardar</button>
+          <div class="input-group mb-3">
+            <input type="text" id="IdPersona" class="form-control" placeholder="Ingrese Id" aria-label="IdPersona" aria-describedby="button-addon2">
             </div>
+            <div class="input-group mb-3">
+                <input id="Nombre" type="text" class="form-control" placeholder="Ingrese su nombre" aria-label="Nombre" aria-describedby="button-addon2">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2" onclick="insertar()">Guardar</button>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="devolver()">Mostrar</button>
             <div class="row p-1">
                 <div class="col-12">
-                    <ol class="list-group list-group-numbered">
+                  <ol class="list-group list-group-numbered" id="lista"></ol>
+                    <!-- <ol class="list-group list-group-numbered">
                         <li class="list-group-item">A list item</li>
                         <li class="list-group-item">A list item</li>
                         <li class="list-group-item">A list item</li>
-                    </ol>
+                    </ol> -->
                 </div>
             </div>
             <div class="row">
@@ -195,7 +201,62 @@
           <div class="col-4"><button type="button" class="btn btn-info">Info</button></div>
         </div>
     </div> -->
+    <script>
+      const insertar = () => {
+          // recuperando los datos de los inputs
+          var _idPersona = document.getElementById('IdPersona').value;
+          var _nombre = document.getElementById('Nombre').value;
+          console.log(_idPersona);
+          console.log(_nombre);
 
+          // creando un objeto articulo 
+          var art = {IdPersona: _idPersona, nombre: _nombre};
+          var transaccion = db.transaction("persona", "readwrite");
+          const objeto = transaccion.objectStore('persona');
+          // insertar en el objeto
+          // const cargarInfo= objeto.add(informacion);
+          const cargarInfo = objeto.add(art);
+          if  (cargarInfo)
+              console.log("guardo con exito",cargarInfo);
+      }
+      const devolver = ()=>{
+        // Lista de boostrapp visualizar
+        var lista = document.getElementById("lista");
+        console.log(lista);
+        db = dbConnection.result;
+        // lectura de tablas
+        var transaccion = db.transaction("persona", "readonly");
+        const objeto = transaccion.objectStore('persona');
+        console.log(objeto);
+        // iterar los elementos
+        const cursor = objeto.openCursor();
+        cursor.onsuccess = (e) =>{
+            const c = e.target.result;
+            if (c){
+                // insertando en el html de UL, se realizo algunas concatenaciones adicionales
+                lista.innerHTML += "<li class='list-group-item'>"+c.value['IdPersona']+'--'+c.value['nombre']+" &nbsp; &nbsp; <button type='button' onclick='eliminar("+c.value['IdPersona']+")' class='btn btn-outline-danger '>Eliminar</button></li>"
+                c.continue();
+            } else {
+                console.log("no tiene datos");
+            }
+        }
+    }
+    const eliminar = (clave) =>{ 
+        console.log(clave);
+        var transaccion = db.transaction("persona", "readwrite");
+        const objeto = transaccion.objectStore('persona');
+        console.log("test", objeto);
+        // insertar en el objeto
+        const eliminado = objeto.delete(clave);
+        eliminado.onsuccess = (test) => {
+          console.log(test);
+            // devolver();
+        }
+        eliminado.onerror = (error) => {
+            console.log(error);
+        }
+    }
+    </script>
 
 
 
